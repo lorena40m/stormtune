@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: StormTune API
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /api/recommend:
+    post:
+      summary: Get tuning recommendations and SparkGap advisory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestPayload'
+      responses:
+        '200':
+          description: Recommendation response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+components:
+  schemas:
+    Ambient:
+      type: object
+      required: [temp_c]
+      properties:
+        temp_c: { type: number, format: float, example: 25.0 }
+        humidity_pct: { type: number, format: float, nullable: true, example: 60 }
+        baro_hpa: { type: number, format: float, nullable: true, example: 1013 }
+        iat_c: { type: number, format: float, nullable: true, example: 40 }
+        clt_c: { type: number, format: float, nullable: true, example: 90 }
+    Track:
+      type: object
+      properties:
+        surface:
+          type: string
+          enum: [asphalt, concrete, gravel, snow, tarmac]
+          example: asphalt
+        condition:
+          type: string
+          enum: [dry, damp, wet]
+          example: dry
+        prep:
+          type: string
+          enum: [unprepped, light, heavy]
+          example: unprepped
+        track_temp_c: { type: number, format: float, nullable: true, example: 32 }
+    Vehicle:
+      type: object
+      properties:
+        drive: { type: string, enum: [FWD, RWD, AWD], example: RWD }
+        induction: { type: string, enum: [na, turbo, supercharged], example: turbo }
+        fuel: { type: string, enum: [Pump, E85, Race], example: Pump }
+        tire: { type: string, enum: [street, drag_radial, slick, semislick, rally], example: drag_radial }
+        weight_class: { type: string, enum: [light, mid, heavy], example: mid }
+        ignition_strength: { type: string, enum: [OEM, SmartCoils, CDI], example: OEM }
+    Baseline:
+      type: object
+      properties:
+        launch_rpm: { type: integer, example: 5500 }
+        base_wgdc_pct: { type: number, format: float, example: 55 }
+        afr_target_wot: { type: number, format: float, example: 11.8 }
+        tire_hot_pressure_psi: { type: number, format: float, example: 16 }
+        boost_psi: { type: number, format: float, example: 12 }
+    RequestPayload:
+      type: object
+      properties:
+        race_mode: { type: string, enum: [street, drag, drift, circuit, rally], example: street }
+        basic_mode: { type: boolean, example: true }
+        ecu_brand: { type: string, nullable: true, example: Haltech }
+        ambient: { $ref: '#/components/schemas/Ambient' }
+        track: { $ref: '#/components/schemas/Track' }
+        vehicle: { $ref: '#/components/schemas/Vehicle' }
+        baseline: { $ref: '#/components/schemas/Baseline' }
+    SparkGapAdvice:
+      type: object
+      properties:
+        gap_in:
+          type: array
+          items: { type: number, format: float }
+          example: [0.020, 0.022]
+        gap_mm:
+          type: array
+          items: { type: number, format: float }
+          example: [0.51, 0.56]
+        notes:
+          type: array
+          items: { type: string }
+    RecommendationResponse:
+      type: object
+      properties:
+        race_mode: { type: string }
+        corrections:
+          type: object
+          properties:
+            launch_rpm: { type: integer }
+            fuel_trim_pct: { type: number }
+            ignition_trim_deg: { type: number }
+            wgdc_trim_pct: { type: number }
+            antilag: { type: string }
+            tire_pressure_hot_psi: { type: number, nullable: true }
+        spark_gap:
+          $ref: '#/components/schemas/SparkGapAdvice'
+        insight: { type: string }
