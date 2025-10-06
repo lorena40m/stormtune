@@ -6,8 +6,8 @@ import 'package:stormtune/providers/car_profile_provider.dart';
 import 'package:stormtune/models/tuning_recommendation.dart';
 import 'package:stormtune/services/api_service.dart';
 import 'package:stormtune/utils/theme.dart';
-import 'package:stormtune/widgets/recommendation_card.dart';
-import 'package:stormtune/widgets/spark_gap_card.dart';
+import "package:stormtune/widgets/enhanced_recommendation_card.dart";
+import "package:stormtune/widgets/enhanced_spark_gap_card.dart";
 
 class RecommendationsScreen extends StatefulWidget {
   const RecommendationsScreen({super.key});
@@ -46,7 +46,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         throw Exception('Car profile is required');
       }
 
-      // Build the payload for the API
+      // Build the payload for the API using track config from app state
       final payload = {
         'race_mode': appState.selectedRaceMode,
         'basic_mode': appState.basicMode,
@@ -58,12 +58,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           'iat_c': weatherProvider.currentWeather!.iatC,
           'clt_c': weatherProvider.currentWeather!.cltC,
         },
-        'track': {
-          'surface': 'asphalt',
-          'condition': 'dry',
-          'prep': 'unprepped',
-          'track_temp_c': weatherProvider.currentWeather!.temperatureC,
-        },
+        'track': appState.trackConfig.toJson(),
         'vehicle': {
           'drive': carProvider.selectedProfile!.drive,
           'induction': carProvider.selectedProfile!.induction,
@@ -225,7 +220,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           ),
           const SizedBox(height: 12),
           
-          RecommendationCard(recommendation: _recommendation!),
+          EnhancedRecommendationCard(recommendation: _recommendation!),
           const SizedBox(height: 20),
 
           // Spark Gap Recommendations
@@ -238,7 +233,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           ),
           const SizedBox(height: 12),
           
-          SparkGapCard(sparkGap: _recommendation!.sparkGap),
+          EnhancedSparkGapCard(sparkGap: _recommendation!.sparkGap),
           const SizedBox(height: 20),
 
           // Disclaimer
@@ -330,4 +325,4 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         return 'Unknown Mode';
     }
   }
-} 
+}

@@ -6,8 +6,8 @@ export default function Home() {
 	return (
 		<div className="min-h-screen bg-background text-foreground">
 			<header className="container mx-auto flex items-center justify-between px-6 py-6">
-				<div className="flex items-center gap-3">
-					<Image src="/next.svg" alt="StormTune" width={28} height={28} className="dark:invert" />
+				<div className="flex items-center gap-2">
+					<Image src="/logo.png" alt="StormTune" width={32} height={32} className="dark:invert" />
 					<span className="text-lg font-semibold tracking-tight">StormTune</span>
 				</div>
 				<nav className="hidden md:flex items-center gap-6 text-sm">

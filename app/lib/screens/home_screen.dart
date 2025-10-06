@@ -7,10 +7,13 @@ import 'package:stormtune/screens/car_setup_screen.dart';
 import 'package:stormtune/screens/weather_screen.dart';
 import 'package:stormtune/screens/recommendations_screen.dart';
 import 'package:stormtune/screens/profiles_screen.dart';
+import 'package:stormtune/screens/track_config_screen.dart';
+import "package:stormtune/models/track_config.dart";
 import 'package:stormtune/widgets/weather_card.dart';
 import 'package:stormtune/widgets/car_profile_card.dart';
 import 'package:stormtune/widgets/race_mode_selector.dart';
 import 'package:stormtune/utils/theme.dart';
+import "package:stormtune/widgets/network_status_indicator.dart";
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,16 +45,17 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Welcome to StormTune!'),
         content: const Text(
-          'Get smart tuning recommendations based on your car setup and weather conditions. '
-          'Start by setting up your car profile and current weather.',
+          'Get smart tuning recommendations based on your car setup, weather conditions, and track configuration. '
+          'Start by setting up your car profile, current weather, and track conditions.',
         ),
         actions: [
-          TextButton(
+          const NetworkStatusIndicator(),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.settings),
             onPressed: () {
-              context.read<AppState>().setFirstLaunch(false);
-              Navigator.of(context).pop();
+              // TODO: Add settings screen
             },
-            child: const Text('Get Started'),
           ),
         ],
       ),
@@ -64,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('StormTune'),
         actions: [
+          const NetworkStatusIndicator(),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -104,6 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     onSelect: () => _navigateToProfiles(),
                     onSetup: () => _navigateToCarSetup(),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Track Configuration Card
+                  _buildTrackConfigCard(appState),
                   const SizedBox(height: 20),
 
                   // Get Recommendations Button
@@ -165,6 +175,79 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildTrackConfigCard(AppState appState) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.track_changes,
+                  color: StormTuneTheme.primaryBlue,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Track Configuration',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => _navigateToTrackConfig(),
+                  child: const Text('Configure'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildTrackInfo(appState.trackConfig),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrackInfo(trackConfig) {
+    return Column(
+      children: [
+        _buildInfoRow('Surface', trackConfig.surfaceDisplayName),
+        _buildInfoRow('Condition', trackConfig.conditionDisplayName),
+        _buildInfoRow('Preparation', trackConfig.prepDisplayName),
+        if (trackConfig.trackTempC != null)
+          _buildInfoRow('Temperature', '${trackConfig.trackTempC!.toStringAsFixed(1)}°C'),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '$label:',
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _navigateToWeather() {
     Navigator.push(
       context,
@@ -186,10 +269,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _navigateToTrackConfig() async {
+    final result = await Navigator.push<TrackConfig>(
+      context,
+      MaterialPageRoute(builder: (context) => const TrackConfigScreen()),
+    );
+    
+    if (result != null) {
+      context.read<AppState>().setTrackConfig(result);
+    }
+  }
+
   void _navigateToRecommendations() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const RecommendationsScreen()),
     );
   }
-} 
+}
